@@ -1,0 +1,118 @@
+---
+title: "The personal movement using activity monitoring devices dataset"
+author: "Kiet Huynh"
+date: "01/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+```
+
+# Introduction
+
+It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the “quantified self” movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
+
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+The data for this assignment can be downloaded from the course web site:
+
+Dataset: [Activity monitoring data](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) [52K]
+The variables included in this dataset are:
+
+steps: Number of steps taking in a 5-minute interval (missing values are coded as \color{red}{\verb|NA|}NA)
+date: The date on which the measurement was taken in YYYY-MM-DD format
+interval: Identifier for the 5-minute interval in which measurement was taken
+The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
+
+# Processing the data from Acitivity monitor csv file
+Load the data (i.e. \color{red}{\verb|read.csv()|}read.csv())
+Process/transform the data (if necessary) into a format suitable for your analysis
+
+```{r}
+#Import the data
+report <- read.csv('activity.csv')
+```
+# Visualization the mean total number of steps taken per day
+What is mean total number of steps taken per day?
+For this part of the assignment, you can ignore the missing values in the dataset.
+
+Calculate the total number of steps taken per day
+If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day
+Calculate and report the mean and median of the total number of steps taken per day
+
+```{r}
+x4 <- aggregate(steps~date,report,sum,na.rm=T)
+#historam number of steps each day
+hist(x4$steps,main='Historam number of steps each day',xlab = 'Steps each day')
+```
+
+# Calculate and report the mean and median of the total number of steps taken per day
+```{r}
+#Mean and Median 
+mean(x4$steps)
+median(x4$steps)
+```
+# The average daily activity pattern
+What is the average daily activity pattern?
+Make a time series plot (i.e. \color{red}{\verb|type = "l"|}type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r}
+x3 <- aggregate(steps~interval,report,mean,na.rm=T)
+plot(x3$interval,x3$steps, type='l',col =1, main='The average daily activity pattern',xlab='5-mins Time Interval',ylab='Average number of steps')
+#The interval with the most step
+x3$interval[which.max((x3$steps))]
+```
+
+```{r}
+#Total NA value 
+sum(is.na(report$steps))
+#Convert NA to mean
+report$steps[is.na(report$steps)==T] <- mean(report$steps, na.rm=TRUE)
+#historam number of steps each day computed
+x2 <- aggregate(steps~date,report,sum)
+hist(x2$steps,main='Historam number of steps each day computed',xlab = 'Steps each day')
+#Mean and Median computed
+mean(x2$steps)
+median(x2$steps)
+```
+# Differences in activity patterns between weekdays and weekends
+Are there differences in activity patterns between weekdays and weekends?
+For this part the \color{red}{\verb|weekdays()|}weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+Make a panel plot containing a time series plot (i.e. \color{red}{\verb|type = "l"|}type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+```{r}
+#Create a function to convert date to weekend and weekday
+wkday <- function(dat_val) {
+  wd <- weekdays(as.Date(dat_val, '%Y-%m-%d'))
+  if  (!(wd == 'Saturday' || wd == 'Sunday')) {
+    x <- 'Weekday'
+  } 
+  else {
+    x <- 'Weekend'
+  }
+  x
+}
+
+#Factor Weekday vs Weekend
+report$Day <- as.factor(sapply(report$date, wkday))
+#Graph using ggplot
+library(ggplot2)
+#Aggregate mean of steps on Interval and Day
+report_activity <- aggregate(steps~interval+Day,report,mean)
+#Make the plot
+g<- ggplot(report_activity, aes(interval,steps))
+g <-g+ geom_line(stat = 'identity', aes(color='Day')) + facet_grid(Day~.)
+g+ labs(x= '5 mins Interval', y = "Average of Steps") + ggtitle("The dataset with two levels – “weekday” and “weekend”")
+```
+
+# The activities during the weekend is delayed and less than the weekday but it is more consistent.
+
+
+
+
